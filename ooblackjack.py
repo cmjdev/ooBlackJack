@@ -2,21 +2,20 @@
 
 ## Author: Christopher Johnson
 ## Date..: February 22, 2012
-## Rev...: February 25, 2012
+## Rev...: February 26, 2012
 ##
 ## CHANGES:
-##  - Cleaned up all GUI code
-##  - Rewrote and simplified Player class
-##  - Added ability to play another round
+##  - Implemented 'Ace Case' into scoring
+##  - Introduced player and dealer status areas
 ##
 ## TODO:
 ##  - Fix dealer AI when player busts or holds
+##  - Loop scoring system to better 'Ace Case'
 ##  - Write wager system to track games
-##  - Implement 'Ace Case' into scoring
 ##  - Write 'Blackjack' into score module
 
 from Tkinter import *
-import random, time
+import random
 
 # Class to set up and maintain GUI
 class MyApp:
@@ -35,17 +34,28 @@ class MyApp:
         dealerFrame.pack(side=TOP, padx=10, pady=5, fill=BOTH)
 
         # Create dealer canvas for displaying cards
-        self.dCanvas = Canvas(dealerFrame, height=90)
+        self.dCanvas = Canvas(dealerFrame, height=70)
         self.dCanvas.pack(fill=BOTH)
 
+        # Dealer status area
+        self.dealerStatus = StringVar(None)
+        dealerLabel = Label(dealerFrame, textvariable=self.dealerStatus, fg='grey')
+        dealerLabel.pack(side=RIGHT)
+
         # Create player frame
+        self.playerStatus = StringVar(None)
         playerFrame = LabelFrame(root, text='Player', borderwidth=1)
-        playerFrame.pack(side=TOP, padx=10, fill=BOTH)
+        playerFrame.pack(side=TOP, padx=10, pady=5, fill=BOTH)
 
         # Create player canvas for displaying cards
-        self.pCanvas = Canvas(playerFrame, height=100)
-        self.pCanvas.pack(side=TOP, fill=BOTH)
+        self.pCanvas = Canvas(playerFrame, height=70)
+        self.pCanvas.pack(fill=BOTH)
 
+        # Player status area
+        self.playerStatus = StringVar(None)
+        playerLabel = Label(playerFrame, textvariable=self.playerStatus, fg='grey')
+        playerLabel.pack(side=RIGHT)
+        
         # Create control frame
         controlFrame = Frame(root)
         controlFrame.pack(side=BOTTOM,  padx=10, pady=10,fill=X)
@@ -54,7 +64,7 @@ class MyApp:
         self.buttonRight = Button(controlFrame, text='Hit Me!', command=self.hitMe)
         self.buttonRight.pack(side=RIGHT)
 
-        self.buttonLeft = Button(controlFrame, text='Stand', command=self.dealerPlay, state=DISABLED)
+        self.buttonLeft = Button(controlFrame, text='Stand', command=self.stand, state=DISABLED)
         self.buttonLeft.pack(side=RIGHT)
 
         # Create status area
@@ -75,7 +85,7 @@ class MyApp:
         self.clearCanvas(canvas)
         
         # Set initial card position position
-        x=10; x1=60; y=10; y1=80
+        x=10; x1=50; y=10; y1=70
 
         # List to determine face card and suit
         face = {0:'K', 1:'A', 11:'J', 12:'Q'}
@@ -108,7 +118,7 @@ class MyApp:
             canvas.create_text(x+4,y+3, anchor=NW, text=s, fill=color)
 
             # Increment position for next card
-            x += 60 ; x1 += 60
+            x += 50 ; x1 += 50
 
 
     def newGame(self):
@@ -119,8 +129,10 @@ class MyApp:
 
         # Reset status
         self.statusText.set('cmjdev.tumblr')
+        self.playerStatus.set('')
+        self.dealerStatus.set('')
 
-        # Display turn card
+        # Clear playing area
         self.clearCanvas(self.pCanvas)
         self.clearCanvas(self.dCanvas)
         
@@ -134,10 +146,12 @@ class MyApp:
         self.display(self.pCanvas, player.hand)
 
         if player.broke:
+            self.playerStatus.set('You broke!')
             self.dealerPlay()
             
     def stand(self): # module for future player status TODO
-        
+
+        self.playerStatus.set('You hold at %i.' % player.score)       
         self.dealerPlay()
 
     def dealerPlay(self):
@@ -149,6 +163,10 @@ class MyApp:
         # Play dealer's hand
         dealer.play()
         self.display(self.dCanvas, dealer.hand)
+
+        if dealer.broke: self.dealerStatus.set('Dealer broke!')
+        else: self.dealerStatus.set('Dealer holds at %i.' % dealer.score)
+        
         self.endGame()
 
     def endGame(self):
@@ -162,7 +180,9 @@ class MyApp:
             self.statusText.set('Dealer wins!')
         elif player.score > dealer.score:
             self.statusText.set('You win!')
-        else: self.statusText.set('Dealer wins!')        
+        elif player.score == dealer.score:
+            self.statusText.set('Draw game!')
+        else: self.statusText.set('Dealer wins!')
 
         # Change right button for New Game
         self.buttonRight['state'] = NORMAL
@@ -214,9 +234,15 @@ class Player:
 
         update = self.hand[-1] % 13
 
-        if update == 1: self.score += 11
+        if update == 1: self.score += 1
         elif (update < 1) or (update > 10): self.score += 10
         else: self.score += update
+
+        # Implement the 'Ace Case'
+        for i in range(len(self.hand)):
+            card = self.hand[i] % 13
+            if card == 1 and self.score+10 <= 21:
+                self.score += 10
 
         if self.score > 21: self.broke = True
 
