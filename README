@@ -1,0 +1,17 @@
+Title...: ooBlackJack 
+Author..: Christopher Johnson
+Contact.: cmj.317@gmail.com
+Online..: http://cmjdev.tumblr.com
+
+Description:
+------------
+ooBlackJack is my foray into Object Oriented Programming with Python. The goal of
+this program is to write a class based blackjack game that allows me to learn the
+tools required to write efficient and easily maintainable code.
+
+Disclaimer:
+-----------
+The code included with this program is under no licensing. Feel free to use,
+modify, or redistribute whatever you find with the notion that I am not a 
+professional programmer. The ways in which I solve a problem are most likely not
+the best, but help me to learn better programming skills and etiquette. 
