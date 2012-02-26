@@ -5,13 +5,11 @@
 ## Rev...: February 26, 2012
 ##
 ## CHANGES:
-##  - Implemented 'Ace Case' into scoring
-##  - Introduced player and dealer status areas
+##  - Added basic wager system. ($500 bank, $50 per hand)
 ##
 ## TODO:
 ##  - Fix dealer AI when player busts or holds
 ##  - Loop scoring system to better 'Ace Case'
-##  - Write wager system to track games
 ##  - Write 'Blackjack' into score module
 
 from Tkinter import *
@@ -53,6 +51,7 @@ class MyApp:
 
         # Player status area
         self.playerStatus = StringVar(None)
+        self.playerStatus.set('Bank: 500')
         playerLabel = Label(playerFrame, textvariable=self.playerStatus, fg='grey')
         playerLabel.pack(side=RIGHT)
         
@@ -75,6 +74,8 @@ class MyApp:
         self.statusText.set('cmjdev.tumblr')
         status = Label(controlFrame, textvariable=self.statusText, fg='grey')
         status.pack(side=LEFT)
+
+
 
     def clearCanvas(self, canvas):
         canvas.delete(ALL)
@@ -129,7 +130,7 @@ class MyApp:
 
         # Reset status
         self.statusText.set('cmjdev.tumblr')
-        self.playerStatus.set('')
+        self.playerStatus.set('Bank: %i' % player.bank)
         self.dealerStatus.set('')
 
         # Clear playing area
@@ -176,13 +177,18 @@ class MyApp:
             if player.broke:
                 self.statusText.set('All players broke!')
             else: self.statusText.set('You win!')
+            player.bank += player.wager
         elif player.broke:
             self.statusText.set('Dealer wins!')
+            player.bank -= player.wager
         elif player.score > dealer.score:
             self.statusText.set('You win!')
+            player.bank += player.wager
         elif player.score == dealer.score:
             self.statusText.set('Draw game!')
-        else: self.statusText.set('Dealer wins!')
+        else:
+            self.statusText.set('Dealer wins!')
+            player.bank -= player.wager
 
         # Change right button for New Game
         self.buttonRight['state'] = NORMAL
@@ -193,12 +199,15 @@ class MyApp:
 # Class for back-end of game
 class Player:
 
+    bank = 500
+
     # Initialize class with player data
     def __init__(self):
 
         self.broke = False
         self.hold = False
         self.score = 0
+        self.wager = 50
 
         # Initialize a deck of cards
         self.deck = range(1,53)
