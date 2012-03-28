@@ -249,8 +249,7 @@ class Player:
 
         # Implement the 'Ace Case'
         for i in range(len(self.hand)):
-            card = self.hand[i] % 13
-            if card == 1 and self.score+10 <= 21:
+            if self.hand[i] % 13 == 1 and self.score+10 <= 21:
                 self.score += 10
 
         if self.score > 21: self.broke = True
